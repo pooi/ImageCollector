@@ -8,7 +8,7 @@ Collect images from multiple search engines.
 <br><br>
 
 ## Used
-> This project requires the BeautifulSoup4, selenium, fake-useragent and lxml modules.
+> This project requires the BeautifulSoup4, selenium, fake-useragent, requests and lxml modules.
 <li> BeautifulSoup4
 
 ```
@@ -31,6 +31,12 @@ pip install fake-useragent
 
 ```
 pip install lxml
+```
+
+<li> requests
+
+```
+pip install requests
 ```
 <br>
 
