@@ -34,7 +34,7 @@ pip install lxml
 ```
 <br>
 
-> ChromeDriver가 필요합니다.
+> This project requires ChromeDriver.
 <li> ChromeDriver
 
 You can download ChromeDriver <a href="https://sites.google.com/a/chromium.org/chromedriver/downloads">here</a>.
