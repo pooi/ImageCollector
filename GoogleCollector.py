@@ -31,6 +31,11 @@ class GoogleCollector:
         self.PROGRESS_LEN = 30
 
     def print_with_color(self, text, color="none"):
+
+        if platform.platform().lower().startswith("win"):
+            print(text)
+            return
+
         if color is "b":
             print(self.TEXT_BLUE + text + self.TEXT_ENDC)
         elif color is "g":
