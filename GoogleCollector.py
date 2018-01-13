@@ -14,6 +14,7 @@ from lxml.html import fromstring
 import os, sys, platform
 import shutil
 import eventlet
+import json
 eventlet.monkey_patch()
 
 class GoogleCollector:
@@ -59,13 +60,16 @@ class GoogleCollector:
             length      - Optional  : character length of bar (Int)
             fill        - Optional  : bar fill character (Str)
         """
-        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-        filledLength = int(length * iteration // total)
-        bar = fill * filledLength + '-' * (length - filledLength)
-        print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end='\r')
-        # Print New Line on Complete
-        if iteration == total:
-            print()
+        try:
+            percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+            filledLength = int(length * iteration // total)
+            bar = fill * filledLength + '-' * (length - filledLength)
+            print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end='\r')
+            # Print New Line on Complete
+            if iteration == total:
+                print()
+        except:
+            pass
 
 
     def search(self, keyword):
@@ -120,7 +124,7 @@ class GoogleCollector:
 
         # Get image urls
         soup = bs(str(source), "html.parser")
-        links = soup.find_all("a", class_="rg_l")
+        links = soup.find_all("div", class_="rg_meta")
         self.print_with_color("Find %d images" % len(links), "g")
 
         return links
@@ -139,13 +143,17 @@ class GoogleCollector:
             link = links[i]
 
             try:
-                r = requests.get("https://www.google.com" + link.get("href"), headers=headers)
-
-                title = str(fromstring(r.content).findtext(".//title"))
-                link = title.split(" ")[-1]
+                ss = link.text
+                obj = json.loads(ss)
+                link = obj['ou']
                 collect.append(link)
+                # r = requests.get("https://www.google.com" + link.get("href"), headers=headers)
+                #
+                # title = str(fromstring(r.content).findtext(".//title"))
+                # link = title.split(" ")[-1]
+                # collect.append(link)
 
-            except:
+            except Exception as e:
                 self.print_with_color("Can't get link.", "r")
 
             if max > 0:
