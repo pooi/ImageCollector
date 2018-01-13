@@ -29,6 +29,7 @@ class NaverCollector:
         self.TEXT_RED = '\033[93m'
 
         self.PROGRESS_LEN = 30
+        self.DOWNLOAD_TIMEOUT = 20
 
     def print_with_color(self, text, color="none"):
 
@@ -204,12 +205,12 @@ class NaverCollector:
                 isFail = True
                 for img in col.split("#"):
                     try:
-                        with eventlet.Timeout(10):
+                        with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
                             r = requests.get(img, stream=True, headers={'User-agent': 'Mozilla/5.0'})
                         if r.status_code == 200:
                             with open(save_path, 'wb') as f:
                                 r.raw.decode_content = True
-                                with eventlet.Timeout(10):
+                                with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
                                     shutil.copyfileobj(r.raw, f)
                             isFail = False
                             break
