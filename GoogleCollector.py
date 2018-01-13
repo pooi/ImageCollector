@@ -186,24 +186,10 @@ class GoogleCollector:
                 full_name = self.collectorName + str(i + 1) + ".jpg"
                 save_path = os.path.join(dir, full_name)  # 저장폴더
 
-                isFail = True
-                for img in col.split("#"):
-                    try:
-                        with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                            r = requests.get(img, stream=True, headers={'User-agent': 'Mozilla/5.0'})
-                        if r.status_code == 200:
-                            with open(save_path, 'wb') as f:
-                                r.raw.decode_content = True
-                                with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                                    shutil.copyfileobj(r.raw, f)
-                            isFail = False
-                            break
-                        else:
-                            isFail = True
-                    except:
-                        isFail = True
-
-                if isFail:
+                try:
+                    with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
+                        urllib2.urlretrieve(col, save_path)
+                except:
                     self.error_list.append(col)
 
         self.print_with_color("Save %d images" % (len(collects) - len(self.error_list)), "g")

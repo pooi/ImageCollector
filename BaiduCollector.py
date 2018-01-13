@@ -204,20 +204,27 @@ class BaiduCollector:
                 full_name = self.collectorName + str(i+1) + ".jpg"
                 save_path = os.path.join(dir, full_name)  # 저장폴더
 
+                try:
+                    urllib2.urlretrieve(col, save_path)
+                except:
+                    self.error_list.append(col)
+
                 isFail = True
                 for img in col.split("#"):
                     try:
                         with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                            r = requests.get(img, stream=True, headers={'User-agent': 'Mozilla/5.0'})
-                        if r.status_code == 200:
-                            with open(save_path, 'wb') as f:
-                                r.raw.decode_content = True
-                                with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                                    shutil.copyfileobj(r.raw, f)
-                            isFail = False
-                            break
-                        else:
-                            isFail = True
+                            urllib2.urlretrieve(img, save_path)
+                        # with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
+                        #     r = requests.get(img, stream=True, headers={'User-agent': 'Mozilla/5.0'})
+                        # if r.status_code == 200:
+                        #     with open(save_path, 'wb') as f:
+                        #         r.raw.decode_content = True
+                        #         with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
+                        #             shutil.copyfileobj(r.raw, f)
+                        isFail = False
+                        break
+                        # else:
+                        #     isFail = True
                     except:
                         isFail = True
 
