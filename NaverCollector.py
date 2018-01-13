@@ -15,13 +15,13 @@ import shutil
 import eventlet
 eventlet.monkey_patch()
 
-class BingCollector:
+class NaverCollector:
 
     def __init__(self):
         self.ua = UserAgent()
         # self.collect = []
         self.error_list = []
-        self.collectorName = "Bing_"
+        self.collectorName = "Naver_"
 
         self.TEXT_BLUE = '\033[94m'
         self.TEXT_ENDC = '\033[0m'
@@ -69,7 +69,7 @@ class BingCollector:
     def search(self, keyword):
         self.print_with_color("Search Result...", "b")
 
-        url = "https://www.bing.com/images/search?q=" + keyword + "&qs=n&form=QBLH&scope=images&sp=-1&pq=" + keyword
+        url = "https://search.naver.com/search.naver?where=image&sm=tab_jum&query=" + keyword
 
         # Create a browser
         if platform.platform().lower().startswith("win"):
@@ -83,23 +83,45 @@ class BingCollector:
 
         browser = webdriver.Chrome(dir)
 
+
         # Open the link
         browser.get(url)
+
+        try:
+            btn = browser.find_element_by_class_name("btn")
+            btn_capcha = btn.find_element_by_tag_name("a")
+            btn_capcha.click()
+            self.print_with_color("Click capcha button")
+            time.sleep(2)
+        except:
+            pass
 
         element = browser.find_element_by_tag_name("body")
 
         # Scroll down
-        num_of_scroll = 10 # 10
-        num_of_down = 100 # 100
+        num_of_scroll = 10
+        num_of_down = 100
         count = 0
-        self.printProgressBar(0, num_of_scroll*num_of_down, prefix='Scroll Down:', suffix='Complete')
-        for i in range(1, num_of_scroll+1):
-            for j in range(1, num_of_down+1):
+        self.printProgressBar(0, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
+        for i in range(1, num_of_scroll + 1):
+            for j in range(1, num_of_down + 1):
                 element.send_keys(Keys.PAGE_DOWN)
                 count += 1
                 self.printProgressBar(count, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
             # print("Scroll Down (%d/%d)" % (i+1, num_of_scroll))
             time.sleep(0.2)
+
+            # Click load more button
+            if i == num_of_scroll / 2:
+                try:
+                    div_more_img = browser.find_element_by_class_name("more_img")
+                    btn_more = div_more_img.find_element_by_tag_name("a")
+                    btn_more.click()
+                    time.sleep(1)
+                except:
+                    self.printProgressBar(num_of_scroll * num_of_down, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
+                    self.print_with_color("Can't click load more button.", "r")
+                    break
 
         # Get page source and close the browser
         source = browser.page_source
@@ -108,7 +130,7 @@ class BingCollector:
 
         # Get image urls
         soup = bs(str(source), "html.parser")
-        links = soup.find_all("img", class_="mimg")
+        links = soup.find_all("div", class_="img_area _item")
         self.print_with_color("Find %d images" % len(links), "g")
 
         return links
@@ -126,16 +148,16 @@ class BingCollector:
             link = links[i]
 
             img = ""
+
             try:
-                img1 = link['src']
-                img1 = str(img1)
-                if not img1.startswith("http"):
-                    img1 = "http://" + img1
+                img2 = link.find('img')['src']
+                if not img2.startswith("http"):
+                    img2 = "http://" + img2
 
                 if img is "":
-                    img = img1
+                    img = img2
                 else:
-                    img = img + "#" + img1
+                    img = img + "#" + img2
             except:
                 pass
 
@@ -203,7 +225,7 @@ class BingCollector:
 
     def collectImage(self, keyword, max=0):
 
-        self.print_with_color("Collect %s images from Bing" % keyword, "r")
+        self.print_with_color("Collect %s images from Naver" % keyword, "r")
 
         links = self.search(keyword)
 
@@ -215,3 +237,7 @@ class BingCollector:
         #     print("Error list")
         #     for err in self.error_list:
         #         print(err)
+
+
+
+

@@ -8,6 +8,8 @@ Collect images from multiple search engines.
 <ul>
     <li><a href='https://www.google.com'>Google</a></li>
     <li><a href='https://www.baidu.com'>Baidu</a></li>
+    <li><a href='https://www.bing.com'>Bing</a></li>
+    <li><a href='https://www.naver.com'>Naver</a></li>
 </ul>
 
 <br>
