@@ -5,10 +5,15 @@
 ## Overview
 Collect images from multiple search engines.
 
-<br><br>
+<ul>
+    <li><a href='https://www.google.com'>Google</a></li>
+    <li><a href='https://www.baidu.com'>Baidu</a></li>
+</ul>
+
+<br>
 
 ## Used
-> This project requires the BeautifulSoup4, selenium, fake-useragent, requests and lxml modules.
+> This project requires the BeautifulSoup4, selenium, fake-useragent, requests, eventlet and lxml modules.
 <li> BeautifulSoup4
 
 ```
@@ -38,6 +43,12 @@ pip install lxml
 ```
 pip install requests
 ```
+
+<li> eventlet
+
+```
+pip install eventlet
+```
 <br>
 
 > This project requires ChromeDriver.
@@ -45,7 +56,7 @@ pip install requests
 
 You can download ChromeDriver <a href="https://sites.google.com/a/chromium.org/chromedriver/downloads">here</a>.
 
-<br><br>
+<br>
 
 ## Start
 > It works in Python 3.
@@ -54,4 +65,9 @@ You can download ChromeDriver <a href="https://sites.google.com/a/chromium.org/c
 python3 main.py
 ```
 
+<br>
+
+## Screenshot
+<img src="https://github.com/pooi/ImageCollector/blob/master/screenshot/Screenshot_001.png"><br>
+<img src="https://github.com/pooi/ImageCollector/blob/master/screenshot/Screenshot_002.png"><br>
 

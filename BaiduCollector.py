@@ -6,24 +6,22 @@ try:
     import urllib.request as urllib2
 except ImportError:
     import urllib2
-import argparse
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from fake_useragent import UserAgent
-from multiprocessing import Pool
-from lxml.html import fromstring
 import os, sys, platform
+import shutil
 import eventlet
 eventlet.monkey_patch()
 
-class GoogleCollector:
+class BaiduCollector:
 
     def __init__(self):
         self.ua = UserAgent()
         # self.collect = []
         self.error_list = []
-        self.collectorName = "Google_"
+        self.collectorName = "Baidu_"
 
         self.TEXT_BLUE = '\033[94m'
         self.TEXT_ENDC = '\033[0m'
@@ -71,8 +69,7 @@ class GoogleCollector:
     def search(self, keyword):
         self.print_with_color("Search Result...", "b")
 
-        url = "https://www.google.com/search?as_st=y&tbm=isch&as_q=" + keyword + \
-              "&as_epq=&as_oq=&as_eq=&cr=&as_sitesearch=&safe=images&tbs=isz:lt,islt:svga,itp:photo,ift:jpg"
+        url = "http://image.baidu.com/search/index?tn=baiduimage&fm=result&ie=utf-8&word=" + keyword
 
         # Create a browser
         if platform.platform().lower().startswith("win"):
@@ -92,8 +89,8 @@ class GoogleCollector:
         element = browser.find_element_by_tag_name("body")
 
         # Scroll down
-        num_of_scroll = 10
-        num_of_down = 100
+        num_of_scroll = 10 # 10
+        num_of_down = 100 # 100
         count = 0
         self.printProgressBar(0, num_of_scroll*num_of_down, prefix='Scroll Down:', suffix='Complete')
         for i in range(1, num_of_scroll+1):
@@ -104,23 +101,14 @@ class GoogleCollector:
             # print("Scroll Down (%d/%d)" % (i+1, num_of_scroll))
             time.sleep(0.2)
 
-            # Click load more button
-            if i == num_of_scroll/2:
-                try:
-                    smb = browser.find_element_by_id("smb")
-                    smb.click()
-                    time.sleep(1)
-                except:
-                    self.print_with_color("Can't click load more button.", "r")
-                    break
-
         # Get page source and close the browser
         source = browser.page_source
         browser.close()
 
+
         # Get image urls
         soup = bs(str(source), "html.parser")
-        links = soup.find_all("a", class_="rg_l")
+        links = soup.find_all("li", class_="imgitem")
         self.print_with_color("Find %d images" % len(links), "g")
 
         return links
@@ -135,17 +123,47 @@ class GoogleCollector:
         self.printProgressBar(0, num_of_links, prefix='Progress:', suffix='Complete')
         for i in range(num_of_links):
             self.printProgressBar(i+1, num_of_links, prefix='Progress:', suffix='Complete')
-            # print("Collect Image URL (%d/%d)" % (i+1, num_of_links))
             link = links[i]
 
+            img = ""
             try:
-                r = requests.get("https://www.google.com" + link.get("href"), headers=headers)
-            except:
-                self.print_with_color("Can't get link.", "r")
+                img1 = link['data-thumburl']
+                img1 = str(img1)
+                if not img1.startswith("http"):
+                    img1 = "http://" + img1
 
-            title = str(fromstring(r.content).findtext(".//title"))
-            link = title.split(" ")[-1]
-            collect.append(link)
+                if img is "":
+                    img = img1
+                else:
+                    img = img + "#" + img1
+            except:
+                pass
+
+            try:
+                img2 = link.find('img')['data-imgurl']
+                if not img2.startswith("http"):
+                    img2 = "http://" + img2
+
+                if img is "":
+                    img = img2
+                else:
+                    img = img + "#" + img2
+            except:
+                pass
+
+            try:
+                img3 = link['data-objurl']
+                if not img3.startswith("http"):
+                    img3 = "http://" + img3
+
+                if img is "":
+                    img = img3
+                else:
+                    img = img + "#" + img3
+            except:
+                pass
+
+            collect.append(img)
 
             if max > 0:
                 if i > max:
@@ -184,18 +202,32 @@ class GoogleCollector:
             else:
                 full_name = self.collectorName + str(i+1) + ".jpg"
                 save_path = os.path.join(dir, full_name)  # 저장폴더
-                try:
-                    with eventlet.Timeout(10):
-                        urllib2.urlretrieve(col, save_path)
-                except:
+
+                isFail = True
+                for img in col.split("#"):
+                    try:
+                        with eventlet.Timeout(10):
+                            r = requests.get(img, stream=True, headers={'User-agent': 'Mozilla/5.0'})
+                        if r.status_code == 200:
+                            with open(save_path, 'wb') as f:
+                                r.raw.decode_content = True
+                                with eventlet.Timeout(10):
+                                    shutil.copyfileobj(r.raw, f)
+                            isFail = False
+                            break
+                        else:
+                            isFail = True
+                    except:
+                        isFail = True
+
+                if isFail:
                     self.error_list.append(col)
-                    pass
 
         self.print_with_color("Save %d images" % (len(collects) - len(self.error_list)), "g")
 
     def collectImage(self, keyword, max=0):
 
-        self.print_with_color("Collect %s images from Google" % keyword, "r")
+        self.print_with_color("Collect %s images from Baidu" % keyword, "r")
 
         links = self.search(keyword)
 
