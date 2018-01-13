@@ -9,7 +9,6 @@ except ImportError:
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from fake_useragent import UserAgent
 from lxml.html import fromstring
 import os, sys, platform
 import shutil
@@ -20,7 +19,6 @@ eventlet.monkey_patch()
 class GoogleCollector:
 
     def __init__(self):
-        self.ua = UserAgent()
         # self.collect = []
         self.error_list = []
         self.collectorName = "Google_"
@@ -101,10 +99,11 @@ class GoogleCollector:
         count = 0
         self.printProgressBar(0, num_of_scroll*num_of_down, prefix='Scroll Down:', suffix='Complete')
         for i in range(1, num_of_scroll+1):
-            for j in range(1, num_of_down+1):
-                element.send_keys(Keys.PAGE_DOWN)
-                count += 1
-                self.printProgressBar(count, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
+            with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
+                for j in range(1, num_of_down+1):
+                    element.send_keys(Keys.PAGE_DOWN)
+                    count += 1
+                    self.printProgressBar(count, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
             # print("Scroll Down (%d/%d)" % (i+1, num_of_scroll))
             time.sleep(0.2)
 
@@ -133,7 +132,6 @@ class GoogleCollector:
         self.print_with_color("Collect Image URL...", "b")
 
         collect = []
-        headers = {"User-Agent": self.ua.random}
 
         num_of_links = len(links)
         self.printProgressBar(0, num_of_links, prefix='Progress:', suffix='Complete')
@@ -204,6 +202,7 @@ class GoogleCollector:
 
     def collectImage(self, keyword, max=0):
 
+        print()
         self.print_with_color("Collect %s images from Google" % keyword, "r")
 
         links = self.search(keyword)

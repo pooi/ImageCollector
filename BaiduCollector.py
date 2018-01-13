@@ -9,7 +9,6 @@ except ImportError:
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from fake_useragent import UserAgent
 import os, sys, platform
 import shutil
 import eventlet
@@ -18,7 +17,6 @@ eventlet.monkey_patch()
 class BaiduCollector:
 
     def __init__(self):
-        self.ua = UserAgent()
         # self.collect = []
         self.error_list = []
         self.collectorName = "Baidu_"
@@ -118,7 +116,6 @@ class BaiduCollector:
         self.print_with_color("Collect Image URL...", "b")
 
         collect = []
-        headers = {"User-Agent": self.ua.random}
 
         num_of_links = len(links)
         self.printProgressBar(0, num_of_links, prefix='Progress:', suffix='Complete')
@@ -235,6 +232,7 @@ class BaiduCollector:
 
     def collectImage(self, keyword, max=0):
 
+        print()
         self.print_with_color("Collect %s images from Baidu" % keyword, "r")
 
         links = self.search(keyword)
