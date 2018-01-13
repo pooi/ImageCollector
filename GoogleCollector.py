@@ -6,14 +6,13 @@ try:
     import urllib.request as urllib2
 except ImportError:
     import urllib2
-import argparse
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from fake_useragent import UserAgent
-from multiprocessing import Pool
 from lxml.html import fromstring
 import os, sys, platform
+import shutil
 import eventlet
 eventlet.monkey_patch()
 
@@ -176,20 +175,34 @@ class GoogleCollector:
         # Start download
         self.printProgressBar(0, len(collects), prefix='Progress:', suffix='Complete')
         for i in range(len(collects)):
-            self.printProgressBar(i+1, len(collects), prefix='Progress:', suffix='Complete')
+            self.printProgressBar(i + 1, len(collects), prefix='Progress:', suffix='Complete')
             # print("Download Image (%d/%d)" % (i+1, len(collects)))
             col = collects[i]
             if (col == '알림'):
                 pass
             else:
-                full_name = self.collectorName + str(i+1) + ".jpg"
+                full_name = self.collectorName + str(i + 1) + ".jpg"
                 save_path = os.path.join(dir, full_name)  # 저장폴더
-                try:
-                    with eventlet.Timeout(10):
-                        urllib2.urlretrieve(col, save_path)
-                except:
+
+                isFail = True
+                for img in col.split("#"):
+                    try:
+                        with eventlet.Timeout(10):
+                            r = requests.get(img, stream=True, headers={'User-agent': 'Mozilla/5.0'})
+                        if r.status_code == 200:
+                            with open(save_path, 'wb') as f:
+                                r.raw.decode_content = True
+                                with eventlet.Timeout(10):
+                                    shutil.copyfileobj(r.raw, f)
+                            isFail = False
+                            break
+                        else:
+                            isFail = True
+                    except:
+                        isFail = True
+
+                if isFail:
                     self.error_list.append(col)
-                    pass
 
         self.print_with_color("Save %d images" % (len(collects) - len(self.error_list)), "g")
 
