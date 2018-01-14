@@ -13,13 +13,18 @@ import os, sys, platform
 import shutil
 import eventlet
 eventlet.monkey_patch()
+from Downloader import Downloader
+from queue import Queue
 
 class BingCollector:
 
-    def __init__(self):
-        # self.collect = []
+    def __init__(self, num_of_thread=8):
+        if num_of_thread < 0:
+            num_of_thread = 1
+
         self.error_list = []
         self.collectorName = "Bing_"
+        self.num_of_thread = num_of_thread
 
         self.TEXT_BLUE = '\033[94m'
         self.TEXT_ENDC = '\033[0m'
@@ -165,23 +170,41 @@ class BingCollector:
         if not dir.endswith("/"):
             dir += '/'
 
-        # Start download
-        self.printProgressBar(0, len(collects), prefix='Progress:', suffix='Complete')
-        for i in range(len(collects)):
-            self.printProgressBar(i+1, len(collects), prefix='Progress:', suffix='Complete')
-            # print("Download Image (%d/%d)" % (i+1, len(collects)))
-            col = collects[i]
-            if (col == '알림'):
-                pass
-            else:
-                full_name = self.collectorName + str(i+1) + ".jpg"
-                save_path = os.path.join(dir, full_name)  # 저장폴더
+        thread_count = self.num_of_thread
 
-                try:
-                    with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                        urllib2.urlretrieve(col, save_path)
-                except:
-                    self.error_list.append(col)
+        queue = Queue()
+
+        self.printProgressBar(0, len(collects), prefix='Progress:', suffix='Complete')
+        for i in range(thread_count):
+            downloader = Downloader(queue, dir, self.collectorName, self.error_list, len(collects))
+            downloader.daemon = True
+            downloader.start()
+
+        for i in range(len(collects)):
+            url = collects[i]
+            queue.put(url)
+
+        queue.join()
+
+        self.printProgressBar(len(collects), len(collects), prefix='Progress:', suffix='Complete')
+
+        # Start download
+        # self.printProgressBar(0, len(collects), prefix='Progress:', suffix='Complete')
+        # for i in range(len(collects)):
+        #     self.printProgressBar(i+1, len(collects), prefix='Progress:', suffix='Complete')
+        #     # print("Download Image (%d/%d)" % (i+1, len(collects)))
+        #     col = collects[i]
+        #     if (col == '알림'):
+        #         pass
+        #     else:
+        #         full_name = self.collectorName + str(i+1) + ".jpg"
+        #         save_path = os.path.join(dir, full_name)  # 저장폴더
+        #
+        #         try:
+        #             with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
+        #                 urllib2.urlretrieve(col, save_path)
+        #         except:
+        #             self.error_list.append(col)
 
         self.print_with_color("Save %d images" % (len(collects) - len(self.error_list)), "g")
 

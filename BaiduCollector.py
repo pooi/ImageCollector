@@ -13,13 +13,18 @@ import os, sys, platform
 import shutil
 import eventlet
 eventlet.monkey_patch()
+from Downloader import Downloader
+from queue import Queue
 
 class BaiduCollector:
 
-    def __init__(self):
-        # self.collect = []
+    def __init__(self, num_of_thread=8):
+        if num_of_thread < 0:
+            num_of_thread = 1
+
         self.error_list = []
         self.collectorName = "Baidu_"
+        self.num_of_thread = num_of_thread
 
         self.TEXT_BLUE = '\033[94m'
         self.TEXT_ENDC = '\033[0m'
@@ -189,44 +194,62 @@ class BaiduCollector:
         if not dir.endswith("/"):
             dir += '/'
 
-        # Start download
+        thread_count = self.num_of_thread
+
+        queue = Queue()
+
         self.printProgressBar(0, len(collects), prefix='Progress:', suffix='Complete')
+        for i in range(thread_count):
+            downloader = Downloader(queue, dir, self.collectorName, self.error_list, len(collects), is_multiple_url=True)
+            downloader.daemon = True
+            downloader.start()
+
         for i in range(len(collects)):
-            self.printProgressBar(i+1, len(collects), prefix='Progress:', suffix='Complete')
-            # print("Download Image (%d/%d)" % (i+1, len(collects)))
-            col = collects[i]
-            if (col == '알림'):
-                pass
-            else:
-                full_name = self.collectorName + str(i+1) + ".jpg"
-                save_path = os.path.join(dir, full_name)  # 저장폴더
+            url = collects[i]
+            queue.put(url)
 
-                try:
-                    urllib2.urlretrieve(col, save_path)
-                except:
-                    self.error_list.append(col)
+        queue.join()
 
-                isFail = True
-                for img in col.split("#"):
-                    try:
-                        with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                            urllib2.urlretrieve(img, save_path)
-                        # with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                        #     r = requests.get(img, stream=True, headers={'User-agent': 'Mozilla/5.0'})
-                        # if r.status_code == 200:
-                        #     with open(save_path, 'wb') as f:
-                        #         r.raw.decode_content = True
-                        #         with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                        #             shutil.copyfileobj(r.raw, f)
-                        isFail = False
-                        break
-                        # else:
-                        #     isFail = True
-                    except:
-                        isFail = True
+        self.printProgressBar(len(collects), len(collects), prefix='Progress:', suffix='Complete')
 
-                if isFail:
-                    self.error_list.append(col)
+        # Start download
+        # self.printProgressBar(0, len(collects), prefix='Progress:', suffix='Complete')
+        # for i in range(len(collects)):
+        #     self.printProgressBar(i+1, len(collects), prefix='Progress:', suffix='Complete')
+        #     # print("Download Image (%d/%d)" % (i+1, len(collects)))
+        #     col = collects[i]
+        #     if (col == '알림'):
+        #         pass
+        #     else:
+        #         full_name = self.collectorName + str(i+1) + ".jpg"
+        #         save_path = os.path.join(dir, full_name)  # 저장폴더
+        #
+        #         try:
+        #             urllib2.urlretrieve(col, save_path)
+        #         except:
+        #             self.error_list.append(col)
+        #
+        #         isFail = True
+        #         for img in col.split("#"):
+        #             try:
+        #                 with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
+        #                     urllib2.urlretrieve(img, save_path)
+        #                 # with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
+        #                 #     r = requests.get(img, stream=True, headers={'User-agent': 'Mozilla/5.0'})
+        #                 # if r.status_code == 200:
+        #                 #     with open(save_path, 'wb') as f:
+        #                 #         r.raw.decode_content = True
+        #                 #         with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
+        #                 #             shutil.copyfileobj(r.raw, f)
+        #                 isFail = False
+        #                 break
+        #                 # else:
+        #                 #     isFail = True
+        #             except:
+        #                 isFail = True
+        #
+        #         if isFail:
+        #             self.error_list.append(col)
 
         self.print_with_color("Save %d images" % (len(collects) - len(self.error_list)), "g")
 
