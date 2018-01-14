@@ -98,7 +98,7 @@ class Downloader(Thread):
     def run(self):
         while True:
             url = self.queue.get()
-            index = self.queue.qsize()
+            index = self.total_count - self.queue.qsize() -1
             if self.is_multiple_url:
                 self.download_images_with_multiple_url(self.folder, url, index)
             else:
