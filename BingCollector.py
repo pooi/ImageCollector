@@ -69,8 +69,17 @@ class BingCollector:
         if iteration == total:
             print()
 
+    def checkImageCount(self, source, maximum=0):
+        if maximum <= 0:
+            return False
 
-    def search(self, keyword):
+        soup = bs(str(source), "html.parser")
+        links = soup.find_all("img", class_="mimg")
+        num_of_image = len(links)
+
+        return num_of_image > maximum
+
+    def search(self, keyword, maximum=0):
         self.print_with_color("Search Result...", "b")
 
         url = "https://www.bing.com/images/search?q=" + keyword + "&qs=n&form=QBLH&scope=images&sp=-1&pq=" + keyword
@@ -103,6 +112,12 @@ class BingCollector:
                 count += 1
                 self.printProgressBar(count, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
             # print("Scroll Down (%d/%d)" % (i+1, num_of_scroll))
+                isFinish = self.checkImageCount(browser.page_source, maximum=maximum)
+                if isFinish:
+                    self.printProgressBar(num_of_scroll * num_of_down, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
+                    break
+            if isFinish:
+                break
             time.sleep(0.2)
 
         # Get page source and close the browser
@@ -213,7 +228,7 @@ class BingCollector:
         print()
         self.print_with_color("Collect %s images from Bing" % keyword, "r")
 
-        links = self.search(keyword)
+        links = self.search(keyword, max)
 
         collect = self.collect_image_URL(links, max)
 

@@ -69,8 +69,17 @@ class BaiduCollector:
         if iteration == total:
             print()
 
+    def checkImageCount(self, source, maximum=0):
+        if maximum <= 0:
+            return False
 
-    def search(self, keyword):
+        soup = bs(str(source), "html.parser")
+        links = soup.find_all("li", class_="imgitem")
+        num_of_image = len(links)
+
+        return num_of_image > maximum
+
+    def search(self, keyword, maximum=0):
         self.print_with_color("Search Result...", "b")
 
         url = "http://image.baidu.com/search/index?tn=baiduimage&fm=result&ie=utf-8&word=" + keyword
@@ -96,6 +105,7 @@ class BaiduCollector:
         num_of_scroll = 10 # 10
         num_of_down = 100 # 100
         count = 0
+        isFinish = False
         self.printProgressBar(0, num_of_scroll*num_of_down, prefix='Scroll Down:', suffix='Complete')
         for i in range(1, num_of_scroll+1):
             for j in range(1, num_of_down+1):
@@ -103,6 +113,12 @@ class BaiduCollector:
                 count += 1
                 self.printProgressBar(count, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
             # print("Scroll Down (%d/%d)" % (i+1, num_of_scroll))
+                isFinish = self.checkImageCount(browser.page_source, maximum=maximum)
+                if isFinish:
+                    self.printProgressBar(num_of_scroll * num_of_down, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
+                    break
+            if isFinish:
+                break
             time.sleep(0.2)
 
         # Get page source and close the browser
@@ -258,7 +274,7 @@ class BaiduCollector:
         print()
         self.print_with_color("Collect %s images from Baidu" % keyword, "r")
 
-        links = self.search(keyword)
+        links = self.search(keyword, max)
 
         collect = self.collect_image_URL(links, max)
 

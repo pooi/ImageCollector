@@ -74,8 +74,17 @@ class GoogleCollector:
         except:
             pass
 
+    def checkImageCount(self, source, maximum=0):
+        if maximum <= 0:
+            return False
 
-    def search(self, keyword):
+        soup = bs(str(source), "html.parser")
+        links = soup.find_all("div", class_="rg_meta")
+        num_of_image = len(links)
+
+        return num_of_image > maximum
+
+    def search(self, keyword, maximum=0):
         self.print_with_color("Search Result...", "b")
 
         url = "https://www.google.com/search?as_st=y&tbm=isch&as_q=" + keyword + \
@@ -104,12 +113,17 @@ class GoogleCollector:
         count = 0
         self.printProgressBar(0, num_of_scroll*num_of_down, prefix='Scroll Down:', suffix='Complete')
         for i in range(1, num_of_scroll+1):
-            with eventlet.Timeout(self.DOWNLOAD_TIMEOUT):
-                for j in range(1, num_of_down+1):
-                    element.send_keys(Keys.PAGE_DOWN)
-                    count += 1
-                    self.printProgressBar(count, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
-            # print("Scroll Down (%d/%d)" % (i+1, num_of_scroll))
+            for j in range(1, num_of_down+1):
+                element.send_keys(Keys.PAGE_DOWN)
+                count += 1
+                self.printProgressBar(count, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
+                isFinish = self.checkImageCount(browser.page_source, maximum=maximum)
+                if isFinish:
+                    self.printProgressBar(num_of_scroll * num_of_down, num_of_scroll * num_of_down, prefix='Scroll Down:',
+                                          suffix='Complete')
+                    break
+            if isFinish:
+                break
             time.sleep(0.2)
 
             # Click load more button
@@ -229,7 +243,7 @@ class GoogleCollector:
         print()
         self.print_with_color("Collect %s images from Google" % keyword, "r")
 
-        links = self.search(keyword)
+        links = self.search(keyword, max)
 
         collect = self.collect_image_URL(links, max)
 

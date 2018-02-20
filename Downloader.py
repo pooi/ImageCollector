@@ -9,6 +9,8 @@ import os
 from threading import Thread
 from queue import Queue
 
+import string
+import random
 
 class Downloader(Thread):
 
@@ -44,6 +46,9 @@ class Downloader(Thread):
         except:
             pass
 
+    def str_generator(self, size=10, chars=string.ascii_lowercase + string.ascii_uppercase + string.digits):
+        return ''.join(random.choice(chars) for _ in range(size))
+
     def download_images(self, target_dir, url, index):
 
         full_name = self.collectorName + str(index + 1) + ".jpg"
@@ -64,7 +69,7 @@ class Downloader(Thread):
 
     def download_images_with_multiple_url(self, target_dir, url, index):
 
-        full_name = self.collectorName + str(index + 1) + ".jpg"
+        full_name = self.collectorName + str(index + 1) + "_" + self.str_generator() + ".jpg"
         save_path = os.path.join(target_dir, full_name)  # 저장폴더
 
         try:
