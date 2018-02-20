@@ -131,12 +131,9 @@ class GoogleCollector:
                 self.printProgressBar(count, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
                 isFinish = self.checkImageCount(browser.page_source, maximum=maximum)
                 if isFinish:
-                    self.printProgressBar(num_of_scroll * num_of_down, num_of_scroll * num_of_down, prefix='Scroll Down:',
-                                          suffix='Complete')
+
                     break
-            if isFinish:
-                break
-            time.sleep(0.2)
+
 
             # Click load more button
             if i == num_of_scroll/2:
@@ -147,6 +144,11 @@ class GoogleCollector:
                 except:
                     self.print_with_color("Can't click load more button.", "r")
                     break
+
+            if i > num_of_scroll/2 and isFinish:
+                self.printProgressBar(num_of_scroll * num_of_down, num_of_scroll * num_of_down, prefix='Scroll Down:', suffix='Complete')
+                break
+            time.sleep(0.2)
 
         # Get page source and close the browser
         source = browser.page_source
