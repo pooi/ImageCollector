@@ -25,7 +25,6 @@ class NaverCollector:
         self.error_list = []
         self.collectorName = "Naver_"
         self.num_of_thread = num_of_thread
-        self.pre_img_count = 0
 
         self.TEXT_BLUE = '\033[94m'
         self.TEXT_ENDC = '\033[0m'
@@ -71,15 +70,12 @@ class NaverCollector:
             print()
 
     def checkImageCount(self, source, maximum=0):
-        soup = bs(str(source), "html.parser")
-        links = soup.find_all("li", class_="imgitem")
-        num_of_image = len(links)
-
-        if self.pre_img_count == num_of_image:
-            return True
-
         if maximum <= 0:
             return False
+
+        soup = bs(str(source), "html.parser")
+        links = soup.find_all("div", class_="img_area _item")
+        num_of_image = len(links)
 
         return num_of_image > maximum
 

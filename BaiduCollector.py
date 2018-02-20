@@ -25,7 +25,6 @@ class BaiduCollector:
         self.error_list = []
         self.collectorName = "Baidu_"
         self.num_of_thread = num_of_thread
-        self.pre_img_count = 0
 
         self.TEXT_BLUE = '\033[94m'
         self.TEXT_ENDC = '\033[0m'
@@ -71,16 +70,12 @@ class BaiduCollector:
             print()
 
     def checkImageCount(self, source, maximum=0):
+        if maximum <= 0:
+            return False
 
         soup = bs(str(source), "html.parser")
         links = soup.find_all("li", class_="imgitem")
         num_of_image = len(links)
-
-        if self.pre_img_count == num_of_image:
-            return True
-
-        if maximum <= 0:
-            return False
 
         return num_of_image > maximum
 
