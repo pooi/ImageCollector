@@ -51,7 +51,7 @@ class GoogleCollector:
         else:
             print(text)
 
-    def printProgressBar(self, iteration, total, prefix='', suffix='', decimals=1, length=30, fill='█'):
+    def printProgressBar(self, iteration, total, prefix='', suffix='', decimals=1, length=30, fill='#'):
         """
         Call in a loop to create terminal progress bar
         @params:

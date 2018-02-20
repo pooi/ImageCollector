@@ -23,7 +23,7 @@ class Downloader(Thread):
         self.total_count = total_count
         self.is_multiple_url = is_multiple_url
 
-    def printProgressBar(self, iteration, total, prefix='', suffix='', decimals=1, length=30, fill='█'):
+    def printProgressBar(self, iteration, total, prefix='', suffix='', decimals=1, length=30, fill='#'):
         """
         Call in a loop to create terminal progress bar
         @params:
