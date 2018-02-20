@@ -51,7 +51,7 @@ class Downloader(Thread):
 
     def download_images(self, target_dir, url, index):
 
-        full_name = self.collectorName + str(index + 1) + ".jpg"
+        full_name = self.collectorName + str(index + 1) + "_" + self.str_generator() + ".jpg"
         save_path = os.path.join(target_dir, full_name)  # 저장폴더
 
         try:
